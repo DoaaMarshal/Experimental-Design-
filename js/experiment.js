@@ -20,7 +20,7 @@ var ctx = {
   participantIndex:touchstone == 1 ? "Participant" : "ParticipantID",
   practiceIndex:"Practice",
   blockIndex: (touchstone == 1 ? "Block" : "Block1"),
-  trialIndex: (touchstone == 1 ? "Trial" : "TrialID"),
+  trialIndex: (touchstone == 1 ? "Trial" : "Block2"),
   vvIndex:"VV",
   objectsCountIndex:"OC",
 
@@ -152,7 +152,7 @@ var displayShapes = function() {
 
   var visualVariable = ctx.trials[ctx.cpt]["VV"];
   var oc = ctx.trials[ctx.cpt]["OC"];
-  if(oc === "Small") {
+  if(oc === "Low") {
     objectCount = 9;
   } else if(oc === "Medium") {
     objectCount = 25;
@@ -310,7 +310,7 @@ var displayPlaceholders = function() {
           for (var i = 0; i < objectCount; i++) {
             group.remove(i);
           }
-          ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , 0]);
+          ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.cpt, ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , 0]);
           if (ctx.trials[ctx.cpt][ctx.participantIndex] != ctx.participant){
             endMessage();
           } else {
