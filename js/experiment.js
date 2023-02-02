@@ -172,9 +172,9 @@ var displayShapes = function() {
   var randomNumber2 = Math.random();
   var targetShadow, targetColor;
   if(randomNumber1 > 0.5) {
-    targetShadow = "shadow1"; // target is large
+    targetShadow = "shadowOff"; // target is large
   } else {
-    targetShadow = "shadow2"; // target is small
+    targetShadow = "shadowOn"; // target is small
   }
   if(randomNumber2 > 0.5) {
     targetColor = "DarkGray"; // target is dark gray
@@ -199,43 +199,58 @@ var displayShapes = function() {
         });
       }
     }
-  } else if (visualVariable = "Shadow"){
+  } else if (visualVariable == "Shadow"){
     for (var i = 0; i < objectCount-1; i++) {
-      if(targetShadow == "shadow1") {
+      if(targetShadow == "shadowOff") {
         objectsAppearance.push({
-          shadow: "shadow2",
+          shadow: "shadowOn",
           color: targetColor
         });
       } else {
         objectsAppearance.push({
-          shadow: "shadow1",
+          shadow: "shadowOff",
           color: targetColor
         });
       }
     }
   } else {
-    if(targetColor == "LightGray" && targetShadow == "shadow1" ) {
-        objectsAppearance.push({
-          shadow: "shadow2",
-          color: "DarkGray"
-        });
-    } else if(targetColor == "LightGray" && targetShadow == "shadow2"){
-      objectsAppearance.push({
-          shadow: "shadow1",
-          color: "DarkGray"
-        });
-    } else if (targetColor == "DarkGray" && targetShadow == "shadow1") {
-        objectsAppearance.push({
-          shadow: "shadow2",
-          color: "LightGray"
-        });
-    } else if(targetColor == "DarkGray" && targetShadow == "shadow2"){
-        objectsAppearance.push({
-          shadow: "shadow1",
-          color: "LightGray"
-        });
+    for (var i = 0; i < objectCount-1; i++) {
+      var randomNumber3 = Math.random();
+      var objShadow = targetShadow;
+      var objColor = targetColor;
+      if (randomNumber3 > 0.3){
+        if(targetShadow == "shadowOff") {
+          objShadow = "shadowOn";
+        } else {
+          objShadow = "shadowOff";
+        }
+      } else if (randomNumber3 > 0.6){
+        if(targetColor == "LightGray") {
+          objColor = "DarkGray";
+        } else {
+          objColor = "LightGray";
+        }
+      } else {
+        if (targetShadow == "shadowOff" && targetColor == "LightGray"){
+          objShadow = "shadowOn";
+          objColor = "DarkGray";
+        } else if (targetShadow == "shadowOff" && targetColor == "DarkGray"){
+          objShadow = "shadowOn";
+          objColor = "LightGray";
+        } else if (targetShadow == "shadowOn" && targetColor == "DarkGray"){
+          objShadow = "shadowOff";
+          objColor = "LightGray";
+        } else if (targetShadow == "shadowOn" && targetColor == "LightGray"){
+          objShadow = "shadowOff";
+          objColor = "DarkGray";
+        }
       }
+      objectsAppearance.push({
+        shadow: objShadow,
+        color: objColor
+      });
     }
+  }
   
 
   // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
