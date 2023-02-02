@@ -1,4 +1,4 @@
-var touchstone = 1;
+var touchstone = 2;
 
 var state = {
   NONE:0,
@@ -42,7 +42,8 @@ var ctx = {
 
 var loadData = function(svgEl){
   // d3.csv parses a csv file...
-  d3.csv("experiment_touchstone"+touchstone+".csv").then(function(data){
+  //d3.csv("experiment_touchstone"+touchstone+".csv").then(function(data){
+    d3.csv("PreattentiveExp.csv").then(function(data){
     // ... and turns it into a 2-dimensional array where each line is an array indexed by the column headers
     // for example, data[2]["OC"] returns the value of OC in the 3rd line
     ctx.trials = data;
@@ -109,7 +110,17 @@ var nextTrial = function() {
   ctx.cpt++;
   displayInstructions();
 }
+var endMessage = function(){
+  d3.select("#instruction").remove();
+  d3.select("#instructionsCanvas")
+    .append("div")
+    .attr("id", "instructions")
+    .classed("instr", true);
 
+  d3.select("#instructions")
+    .append("p")
+    .html("You've made it to the end!");
+}
 var displayInstructions = function() {
   ctx.state = state.INSTRUCTIONS;
 
@@ -159,11 +170,11 @@ var displayShapes = function() {
   // In my example, it means deciding on its size (large or small) and its color (light or dark)
   var randomNumber1 = Math.random();
   var randomNumber2 = Math.random();
-  var targetSize, targetColor;
+  var targetShadow, targetColor;
   if(randomNumber1 > 0.5) {
-    targetSize = 25; // target is large
+    targetShadow = "shadow1"; // target is large
   } else {
-    targetSize = 15; // target is small
+    targetShadow = "shadow2"; // target is small
   }
   if(randomNumber2 > 0.5) {
     targetColor = "DarkGray"; // target is dark gray
@@ -174,26 +185,65 @@ var displayShapes = function() {
   // 2. Set the visual appearance of all other objects now that the target appearance is decided
   // Here, we implement the case VV = "Size" so all other objects are large (resp. small) if target is small (resp. large) but have the same color as target.
   var objectsAppearance = [];
-  for (var i = 0; i < objectCount-1; i++) {
-    if(targetSize == 25) {
-      objectsAppearance.push({
-        size: 15,
-        color: targetColor
-      });
-    } else {
-      objectsAppearance.push({
-        size: 25,
-        color: targetColor
-      });
+  if (visualVariable == "Color"){
+    for (var i = 0; i < objectCount-1; i++) {
+      if(targetColor == "LightGray") {
+        objectsAppearance.push({
+          shadow: targetShadow,
+          color: "DarkGray"
+        });
+      } else {
+        objectsAppearance.push({
+          shadow: targetShadow,
+          color: "LightGray"
+        });
+      }
     }
-  }
+  } else if (visualVariable = "Shadow"){
+    for (var i = 0; i < objectCount-1; i++) {
+      if(targetShadow == "shadow1") {
+        objectsAppearance.push({
+          shadow: "shadow2",
+          color: targetColor
+        });
+      } else {
+        objectsAppearance.push({
+          shadow: "shadow1",
+          color: targetColor
+        });
+      }
+    }
+  } else {
+    if(targetColor == "LightGray" && targetShadow == "shadow1" ) {
+        objectsAppearance.push({
+          shadow: "shadow2",
+          color: "DarkGray"
+        });
+    } else if(targetColor == "LightGray" && targetShadow == "shadow2"){
+      objectsAppearance.push({
+          shadow: "shadow1",
+          color: "DarkGray"
+        });
+    } else if (targetColor == "DarkGray" && targetShadow == "shadow1") {
+        objectsAppearance.push({
+          shadow: "shadow2",
+          color: "LightGray"
+        });
+    } else if(targetColor == "DarkGray" && targetShadow == "shadow2"){
+        objectsAppearance.push({
+          shadow: "shadow1",
+          color: "LightGray"
+        });
+      }
+    }
+  
 
   // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
   shuffle(objectsAppearance);
   // draw a random index for the target
   ctx.targetIndex = Math.floor(Math.random()*objectCount);
   // and insert it at this specific index
-  objectsAppearance.splice(ctx.targetIndex, 0, {size:targetSize, color:targetColor});
+  objectsAppearance.splice(ctx.targetIndex, 0, {shadow:targetShadow, color:targetColor});
 
   // 4. We create actual SVG shapes and lay them out as a grid
   // compute coordinates for laying out objects as a grid
@@ -203,11 +253,13 @@ var displayShapes = function() {
       group.append("circle")
       .attr("cx", gridCoords[i].x)
       .attr("cy", gridCoords[i].y)
-      .attr("r", objectsAppearance[i].size)
-      .attr("fill", objectsAppearance[i].color);
+      .attr("r", 20)
+      .attr("fill", objectsAppearance[i].color)
+      .attr("filter","url(#" + objectsAppearance[i].shadow + ")");
 
   }
 }
+var startTime = 0;
 
 var displayPlaceholders = function() {
   ctx.state = state.PLACEHOLDERS;
@@ -243,18 +295,27 @@ var displayPlaceholders = function() {
           for (var i = 0; i < objectCount; i++) {
             group.remove(i);
           }
-          nextTrial();
+          ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , 0]);
+          if (ctx.trials[ctx.cpt][ctx.participantIndex] != ctx.participant){
+            endMessage();
+          } else {
+            nextTrial();
+          }
         }
       );
 
   }
 }
 
+
+
 var keyListener = function(event) {
   event.preventDefault();
+  
 
   if(ctx.state == state.INSTRUCTIONS && event.code == "Enter") {
     d3.select("#instructions").remove();
+    startTime = Date.now();
     displayShapes();
   }
 
