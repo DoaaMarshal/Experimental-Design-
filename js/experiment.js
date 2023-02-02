@@ -110,8 +110,8 @@ var nextTrial = function() {
   ctx.cpt++;
   displayInstructions();
 }
+
 var endMessage = function(){
-  d3.select("#instruction").remove();
   d3.select("#instructionsCanvas")
     .append("div")
     .attr("id", "instructions")
@@ -214,36 +214,47 @@ var displayShapes = function() {
       }
     }
   } else {
-    for (var i = 0; i < objectCount-1; i++) {
-      var randomNumber3 = Math.random();
-      var objShadow = targetShadow;
-      var objColor = targetColor;
-      if (randomNumber3 > 0.3){
-        if(targetShadow == "shadowOff") {
-          objShadow = "shadowOn";
-        } else {
-          objShadow = "shadowOff";
-        }
-      } else if (randomNumber3 > 0.6){
-        if(targetColor == "LightGray") {
-          objColor = "DarkGray";
-        } else {
-          objColor = "LightGray";
-        }
+    for (var i = 0; i < objectCount/3; i++){
+      if (targetShadow == "shadowOff"){
+        objectsAppearance.push({
+          shadow: "shadowOn",
+          color: targetColor
+        });
       } else {
-        if (targetShadow == "shadowOff" && targetColor == "LightGray"){
-          objShadow = "shadowOn";
-          objColor = "DarkGray";
-        } else if (targetShadow == "shadowOff" && targetColor == "DarkGray"){
-          objShadow = "shadowOn";
-          objColor = "LightGray";
-        } else if (targetShadow == "shadowOn" && targetColor == "DarkGray"){
-          objShadow = "shadowOff";
-          objColor = "LightGray";
-        } else if (targetShadow == "shadowOn" && targetColor == "LightGray"){
-          objShadow = "shadowOff";
-          objColor = "DarkGray";
-        }
+        objectsAppearance.push({
+          shadow: "shadowOff",
+          color: targetColor
+        });
+      }
+    }
+    for (var i = objectCount/3; i < 2*(objectCount/3); i++){
+      if (targetColor == "LightGray"){
+        objectsAppearance.push({
+          shadow: targetShadow,
+          color: "DarkGray"
+        });
+      } else {
+        objectsAppearance.push({
+          shadow: targetShadow,
+          color: "LightGray"
+        });
+      }
+    }
+    for (var i = 2*(objectCount/3); i < objectCount - 1; i++){
+      var objShadow;
+      var objColor;
+      if (targetShadow == "shadowOff" && targetColor == "LightGray"){
+        objShadow = "shadowOn";
+        objColor = "DarkGray";
+      } else if (targetShadow == "shadowOff" && targetColor == "DarkGray"){
+        objShadow = "shadowOn";
+        objColor = "LightGray";
+      } else if (targetShadow == "shadowOn" && targetColor == "DarkGray"){
+        objShadow = "shadowOff";
+        objColor = "LightGray";
+      } else{
+        objShadow = "shadowOff";
+        objColor = "DarkGray";
       }
       objectsAppearance.push({
         shadow: objShadow,
@@ -282,7 +293,7 @@ var displayPlaceholders = function() {
   var oc = ctx.trials[ctx.cpt]["OC"];
   var objectCount = 0;
 
-  if(oc === "Small") {
+  if(oc === "Low") {
     objectCount = 9;
   } else if(oc === "Medium") {
     objectCount = 25;
@@ -311,7 +322,7 @@ var displayPlaceholders = function() {
             group.remove(i);
           }
           ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.cpt, ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , 0]);
-          if (ctx.trials[ctx.cpt][ctx.participantIndex] != ctx.participant){
+          if (ctx.trials[ctx.cpt+1][ctx.participantIndex] != ctx.participant){
             endMessage();
           } else {
             nextTrial();
@@ -327,7 +338,6 @@ var displayPlaceholders = function() {
 var keyListener = function(event) {
   event.preventDefault();
   
-
   if(ctx.state == state.INSTRUCTIONS && event.code == "Enter") {
     d3.select("#instructions").remove();
     startTime = Date.now();
