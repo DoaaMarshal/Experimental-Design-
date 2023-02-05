@@ -5,6 +5,7 @@ var state = {
   INSTRUCTIONS: 1,
   SHAPES: 2,
   PLACEHOLDERS: 3,
+  ENDPARTICIPANT: 4,
 };
 
 var ctx = {
@@ -35,6 +36,8 @@ var ctx = {
     [["Participant","Practice","Block","Trial","VV","OC","visualSearchTime","ErrorCount"]] :
     [["DesignName","ParticipantID","TrialID","Block1","Trial","VV","OC","visualSearchTime","ErrorCount"]]
 };
+
+
 
 /****************************************/
 /********** LOAD CSV DESIGN FILE ********/
@@ -112,6 +115,8 @@ var nextTrial = function() {
 }
 
 var endMessage = function(){
+  ctx.state = state.ENDPARTICIPANT;
+
   d3.select("#instructionsCanvas")
     .append("div")
     .attr("id", "instructions")
@@ -120,6 +125,10 @@ var endMessage = function(){
   d3.select("#instructions")
     .append("p")
     .html("You've made it to the end!");
+
+  d3.select("#instructions")
+    .append("p")
+    .html("To go to the next participant, press <code>Enter<code> ");
 }
 var displayInstructions = function() {
   ctx.state = state.INSTRUCTIONS;
@@ -263,7 +272,6 @@ var displayShapes = function() {
     }
   }
   
-
   // 3. Shuffle the list of objects (useful when there are variations regarding both visual variable) and add the target at a specific index
   shuffle(objectsAppearance);
   // draw a random index for the target
@@ -286,6 +294,7 @@ var displayShapes = function() {
   }
 }
 var startTime = 0;
+var errorCounter = 0;
 
 var displayPlaceholders = function() {
   ctx.state = state.PLACEHOLDERS;
@@ -308,6 +317,7 @@ var displayPlaceholders = function() {
 
   var gridCoords = gridCoordinates(objectCount, 60);
   for (var i = 0; i < objectCount; i++) {
+    let counter = i;
     var placeholder = group.append("rect")
         .attr("x", gridCoords[i].x-28)
         .attr("y", gridCoords[i].y-28)
@@ -317,22 +327,29 @@ var displayPlaceholders = function() {
 
 
     placeholder.on("click",
-        function() {
-          for (var i = 0; i < objectCount; i++) {
-            group.remove(i);
+        function() { 
+          for (var j = 0; j < objectCount; j++) { //remove the placeholders
+            group.remove(j);
+          } 
+          if (ctx.targetIndex == counter){ //if it's the right target
+            d3.select("#shapes").remove(); //remove the shapes
+            ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.cpt, ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , errorCounter]); //log
+            errorCounter = 0; //error count goes back to 0
+            if (ctx.trials[ctx.cpt+1][ctx.participantIndex] != ctx.participant){ //if next participant, end trial
+              endMessage();
+            } else { //if same participant, next trial
+              nextTrial();
+            }
+          } else { //if wrong shape clicked
+            errorCounter++; //error counter goes up
+            ctx.state = state.SHAPES;
           }
-          ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.cpt, ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , 0]);
-          if (ctx.trials[ctx.cpt+1][ctx.participantIndex] != ctx.participant){
-            endMessage();
-          } else {
-            nextTrial();
-          }
+          
         }
       );
 
   }
 }
-
 
 
 var keyListener = function(event) {
@@ -344,9 +361,13 @@ var keyListener = function(event) {
     displayShapes();
   }
 
-  if(ctx.state = state.SHAPES && event.code == "Space") {
-    d3.select("#shapes").remove();
+  if(ctx.state == state.SHAPES && event.code == "Space") {
     displayPlaceholders();
+  }
+
+  if (ctx.state == state.ENDPARTICIPANT && event.code == "Enter"){
+    d3.select("#instructions").remove();
+    displayInstructions();
   }
 
 
