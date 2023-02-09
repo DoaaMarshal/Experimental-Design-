@@ -331,6 +331,7 @@ var displayPlaceholders = function() {
           for (var j = 0; j < objectCount; j++) { //remove the placeholders
             group.remove(j);
           } 
+          d3.select("#shapes").remove();
           if (ctx.targetIndex == counter){ //if it's the right target
             d3.select("#shapes").remove(); //remove the shapes
             ctx.loggedTrials.push(["Preatt-exp", ctx.trials[ctx.cpt][ctx.participantIndex], ctx.cpt, ctx.trials[ctx.cpt][ctx.blockIndex], ctx.trials[ctx.cpt][ctx.trialIndex], ctx.trials[ctx.cpt]["VV"], ctx.trials[ctx.cpt]["OC"], Date.now() - startTime , errorCounter]); //log
@@ -342,7 +343,8 @@ var displayPlaceholders = function() {
             }
           } else { //if wrong shape clicked
             errorCounter++; //error counter goes up
-            ctx.state = state.SHAPES;
+            displayInstructions();
+            ctx.state = state.INSTRUCTIONS;
           }
           
         }
